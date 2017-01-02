@@ -18,12 +18,12 @@ const args = minimist(process.argv.slice(2), {
         x: 'noExternal',
         p: 'plugin',
         t: 'transform',
-        r: 'remove'
+        c: 'compress'
     },
     boolean: [
         'watch',
         'noExternal',
-        'remove'
+        'compress'
     ],
     string: [
         'name',
@@ -39,7 +39,7 @@ const args = minimist(process.argv.slice(2), {
         source: './src/',
         watch: false,
         noExternal: false,
-        remove: false
+        compress: true
     }
 });
 
@@ -48,26 +48,6 @@ const outputName = args.outputName || args.name;
 if (!outputName) {
     console.log('> ERROR: Must include name for output.');
     process.exit(1);
-}
-
-if (args.remove) {
-    const fs = require('fs');
-    const path = require('path');
-    const prevDestFiles = [
-        path.join(args.dest, outputName + '.js'),
-        path.join(args.dest, outputName + '.min.js'),
-        path.join(args.dest, outputName + '.js.map'),
-        path.join(args.dest, outputName + '.min.js.map'),
-    ];
-    prevDestFiles.forEach(function(file) {
-        if (fs.existsSync(file)) {
-            try {
-                fs.unlinkSync(file);
-            } catch(error) {
-                console.warn("WARNING: Can't remove " + file + " : ", error);
-            }
-        }
-    });
 }
 
 // Bundle and show the timestamps
@@ -83,7 +63,7 @@ function bundle(options, callback) {
         if (!args.watch) {
             // Display the output, on in non-watch mode
             const sec = (Date.now() - startTime) / 1000;
-            console.log('> Built %s in %d seconds', outputName + '.js', sec);
+            console.log('> Built %s in %d seconds', options.output, sec);
         }
         callback();
     });
@@ -99,7 +79,7 @@ bundle({
 function() {
     // Don't do minify release when watching
     // it's too slow because of uglify
-    if (!args.watch) {
+    if (!args.watch && args.compress) {
         // Do the release build
         bundle({
             cli: true,
