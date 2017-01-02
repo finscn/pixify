@@ -15,15 +15,15 @@ const args = minimist(process.argv.slice(2), {
         n: 'name',
         o: 'outputName',
         w: 'watch',
-        x: 'noExternal',
+        x: 'external',
         p: 'plugin',
         t: 'transform',
-        c: 'compress'
+        m: 'minify'
     },
     boolean: [
         'watch',
-        'noExternal',
-        'compress'
+        'external',
+        'minify'
     ],
     string: [
         'name',
@@ -38,8 +38,8 @@ const args = minimist(process.argv.slice(2), {
         dest: './bin/',
         source: './src/',
         watch: false,
-        noExternal: false,
-        compress: true
+        external: true,
+        minify: true
     }
 });
 
@@ -58,7 +58,7 @@ function bundle(options, callback) {
     if (!args.watch) {
         startTime = Date.now();
     }
-    options = Object.assign({}, args, options);
+    options = Object.assign({}, options, args);
     pixify(options, function() {
         if (!args.watch) {
             // Display the output, on in non-watch mode
@@ -73,19 +73,17 @@ function bundle(options, callback) {
 bundle({
     cli: true,
     compress: false,
-    output: outputName + '.js',
-    external: !args.noExternal
+    output: outputName + '.js'
 },
 function() {
     // Don't do minify release when watching
     // it's too slow because of uglify
-    if (!args.watch && args.compress) {
+    if (!args.watch && args.minify) {
         // Do the release build
         bundle({
             cli: true,
             compress: true,
-            output: outputName + '.min.js',
-            external: !args.noExternal
+            output: outputName + '.min.js'
         }, finish);
     }
     else {
